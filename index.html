@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Pass System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables for a Cohesive Color Palette */
+        :root {
+            --primary-indigo: #6A0DAD; /* Darker Purple */
+            --primary-indigo-dark: #4B0082; /* Even Darker Purple */
+            --secondary-green: #3CB371; /* Medium Sea Green */
+            --secondary-green-dark: #2E8B57; /* Sea Green */
+            --accent-blue: #4169E1; /* Royal Blue */
+            --accent-blue-dark: #1E90FF; /* Dodger Blue */
+            --accent-purple: #FF69B4; /* Hot Pink */
+            --accent-purple-dark: #FF1493; /* Deep Pink */
+            --danger-red: #DC143C; /* Crimson */
+            --danger-red-dark: #B22222; /* Firebrick */
+            --info-orange: #FF8C00; /* Dark Orange for Admin */
+            --info-orange-dark: #FF4500; /* Orange Red */
+            --bg-light-gray: #f0f2f5;
+            --text-dark: #2c3e50; /* Darker text */
+            --text-medium: #5c6c7c;
+            --border-light: #e5e7eb;
+            --card-bg: #ffffff;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+        }
+
+        /* General Body Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3); /* Light blue gradient background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem 0;
+            margin: 0;
+            overflow-y: auto;
+            color: var(--text-dark);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Fade Animations */
+        .fade-in { animation: fadeIn 0.6s ease-in-out forwards; }
+        .fade-out { animation: fadeOut 0.6s ease-in-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+
+        /* App Container */
+        #app-container {
+            background-color: var(--card-bg);
+            padding: 3rem;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 30px 60px -12px var(--shadow-medium), 0 10px 20px -8px var(--shadow-light); /* Deeper shadow */
+            max-width: 80rem; /* Even wider */
+            width: 90%;
+            margin: 2rem auto;
+            transition: all 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.5); /* Subtle white border */
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+        }
+        @media (min-width: 768px) {
+            #app-container {
+                padding: 4rem;
+            }
+        }
+
+        /* Header */
+        header {
+            width: 100%;
+            margin-bottom: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 1.8rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+        header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem; /* Much larger title */
+            font-weight: 800; /* Extra bold */
+            text-align: center;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, var(--primary-indigo), var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Navigation */
+        #main-nav {
+            display: none;
+            width: 100%;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem; /* More gap */
+        }
+        .nav-button {
+            font-weight: 700;
+            padding: 0.9rem 1.6rem; /* Larger buttons */
+            border-radius: 0.8rem; /* More rounded */
+            box-shadow: 0 6px 12px -2px var(--shadow-medium), 0 3px 6px -1px var(--shadow-light);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Springy effect */
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.03em;
+        }
+        .nav-button::after { /* Ripple effect */
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(1) translate(-50%, -50%);
+            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+        }
+        .nav-button:hover::after {
+            transform: scale(25) translate(-50%, -50%);
+            opacity: 1;
+        }
+        .nav-button:active {
+            transform: translateY(2px) scale(0.98); /* Press down effect */
+        }
+
+        #dashboard-btn { background-color: var(--primary-indigo); color: #ffffff; }
+        #dashboard-btn:hover { background-color: var(--primary-indigo-dark); transform: translateY(-3px) scale(1.02); }
+        #apply-pass-nav-btn { background-color: var(--secondary-green); color: #ffffff; }
+        #apply-pass-nav-btn:hover { background-color: var(--secondary-green-dark); transform: translateY(-3px) scale(1.02); }
+        #view-passes-nav-btn { background-color: var(--accent-blue); color: #ffffff; }
+        #view-passes-nav-btn:hover { background-color: var(--accent-blue-dark); transform: translateY(-3px) scale(1.02); }
+        #routes-nav-btn { background-color: #DAA520; color: #ffffff; } /* Goldenrod */
+        #routes-nav-btn:hover { background-color: #B8860B; transform: translateY(-3px) scale(1.02); } /* Dark Goldenrod */
+        #admin-btn { background-color: var(--info-orange); color: #ffffff; }
+        #admin-btn:hover { background-color: var(--info-orange-dark); transform: translateY(-3px) scale(1.02); }
+        #logout-btn { background-color: var(--danger-red); color: #ffffff; }
+        #logout-btn:hover { background-color: var(--danger-red-dark); transform: translateY(-3px) scale(1.02); }
+
+
+        /* Toast Message System */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column-reverse; /* Newest on top */
+            gap: 10px;
+            max-width: 350px;
+        }
+        .toast {
+            background-color: var(--card-bg);
+            color: var(--text-dark);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideInToast 0.5s forwards, fadeOutToast 0.5s 2.5s forwards; /* Slide in, then fade out */
+            position: relative;
+            overflow: hidden;
+            border-left: 5px solid;
+        }
+        .toast.success { border-left-color: var(--secondary-green); }
+        .toast.error { border-left-color: var(--danger-red); }
+        .toast.info { border-left-color: var(--accent-blue); }
+
+        .toast-icon { font-size: 1.4rem; }
+        .toast.success .toast-icon { color: var(--secondary-green); }
+        .toast.error .toast-icon { color: var(--danger-red); }
+        .toast.info .toast-icon { color: var(--accent-blue); }
+
+        .toast-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-medium);
+            margin-left: auto;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .toast-close-btn:hover { background-color: #f0f0f0; }
+
+        @keyframes slideInToast {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOutToast {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        /* Section Styling */
+        section {
+            width: 100%;
+            display: none;
+            padding: 1.5rem; /* Consistent padding for all sections */
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
+        }
+        section.fade-in { display: block; }
+        section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(90deg, var(--primary-indigo), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Auth Section */
+        #auth-section { max-width: 32rem; padding: 3rem; }
+        #auth-section h2 { color: var(--primary-indigo); } /* Specific color for auth h2 */
+        #auth-form { display: flex; flex-direction: column; gap: 1.8rem; }
+        #auth-form label {
+            display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.5rem;
+        }
+        #auth-form input {
+            width: 100%; padding: 1rem 1.2rem; border: 2px solid var(--border-light); border-radius: 0.7rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); transition: all 0.3s ease-in-out; font-size: 1.05rem;
+        }
+        #auth-form input:focus {
+            outline: none; border-color: var(--primary-indigo); box-shadow: 0 0 0 4px rgba(106, 13, 173, 0.2);
+        }
+        #auth-submit-btn {
+            width: 100%; background-color: var(--primary-indigo); color: #ffffff; font-weight: 700;
+            padding: 1.2rem 1.5rem; border-radius: 0.8rem;
+            box-shadow: 0 8px 15px -4px var(--shadow-medium); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: scale(1); border: none; cursor: pointer;
+        }
+        #auth-submit-btn:hover { background-color: var(--primary-indigo-dark); transform: translateY(-3px) scale(1.01); }
+        #auth-section p { margin-top: 1.8rem; text-align: center; color: var(--text-medium); font-size: 1rem; }
+        #toggle-auth-mode {
+            color: var(--primary-indigo); font-weight: 700; transition: color 0.2s ease-in-out;
+            background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline;
+        }
+        #toggle-auth-mode:hover { color: var(--primary-indigo-dark); }
+
+        /* Dashboard Section */
+        #dashboard-section .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.8rem;
+            max-width: 100%; margin: 0 auto;
+        }
+
+        /* Dashboard Cards */
+        #dashboard-section .card {
+            padding: 2.5rem; border-radius: 1.2rem;
+            box-shadow: 0 12px 25px -5px var(--shadow-medium), 0 5px 10px -3px var(--shadow-light);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; transform: scale(1);
+            transition: transform 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+            cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.3);
+            background-size: 200% 200%;
+            animation: gradient-anim 8s ease infinite alternate;
+            color: #ffffff;
+        }
+        #dashboard-section .card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 20px 40px -8px var(--shadow-medium);
+        }
+        @keyframes gradient-anim {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        #dashboard-section .card svg {
+            width: 5.5rem; height: 5.5rem; margin-bottom: 1.5rem; opacity: 0.95;
+            color: #ffffff; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));
+        }
+        #dashboard-section .card h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem; font-weight: 700; margin-bottom: 0.8rem; text-shadow: 0 2px 3px rgba(0,0,0,0.4);
+        }
+        #dashboard-section .card p { font-size: 1rem; color: rgba(255, 255, 255, 0.9); }
+
+        /* Card Colors - More Dynamic Gradients */
+        #card-apply-pass { background-image: linear-gradient(to bottom right, #6A0DAD, #9932CC); } /* Dark Orchid to Dark Violet */
+        #card-view-passes { background-image: linear-gradient(to bottom right, #4169E1, #6495ED); } /* Royal Blue to Cornflower Blue */
+        #card-profile-settings { background-image: linear-gradient(to bottom right, #FF69B4, #FFB6C1); } /* Hot Pink to Light Pink */
+        #card-routes { background-image: linear-gradient(to bottom right, #DAA520, #FFD700); } /* Goldenrod to Gold */
+        #card-admin-dashboard { background-image: linear-gradient(to bottom right, #FF8C00, #FFA07A); } /* Dark Orange to Light Salmon */
+
+        /* Apply for Pass & Profile Settings & Admin Section Forms */
+        #apply-pass-section, #profile-settings-section, #admin-dashboard-section, #routes-section {
+            max-width: 55rem;
+            padding: 3rem;
+        }
+        #pass-application-form, #profile-form, #admin-data-display, #routes-table-container {
+            display: flex; flex-direction: column; gap: 1.5rem;
+            background-color: var(--card-bg); padding: 2.5rem; border-radius: 1rem;
+            box-shadow: 0 10px 20px -3px var(--shadow-medium), 0 4px 8px -2px var(--shadow-light);
+            border: 1px solid var(--border-light);
+        }
+        #pass-application-form label, #profile-form label {
+            display: block; font-size: 1rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.6rem;
+        }
+        #pass-application-form input, #pass-application-form select, #profile-form input {
+            width: 100%; padding: 1rem 1.2rem; border: 2px solid var(--border-light); border-radius: 0.7rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); transition: all 0.3s ease-in-out; font-size: 1.05rem;
+        }
+        #pass-application-form input:focus, #pass-application-form select:focus {
+            outline: none; border-color: var(--primary-indigo); box-shadow: 0 0 0 4px rgba(106, 13, 173, 0.2);
+        }
+        #profile-form input:focus {
+            outline: none; border-color: var(--accent-purple); box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.2);
+        }
+
+        /* Readonly input */
+        #profile-username { background-color: #f8fafc; color: var(--text-medium); cursor: not-allowed; }
+
+        /* Form Buttons */
+        .form-submit-btn { /* General class for form buttons */
+            width: 100%; font-weight: 700; padding: 1.2rem 1.5rem; border-radius: 0.8rem;
+            box-shadow: 0 8px 15px -4px var(--shadow-medium); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: scale(1); border: none; cursor: pointer; color: #ffffff;
+        }
+        .form-submit-btn:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 12px 20px -6px var(--shadow-medium); }
+        .form-submit-btn:disabled {
+            background-color: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.7;
+        }
+
+        #submit-pass-btn { background-color: var(--secondary-green); }
+        #submit-pass-btn:hover { background-color: var(--secondary-green-dark); }
+        #process-payment-btn { background-color: var(--accent-blue); }
+        #process-payment-btn:hover { background-color: var(--accent-blue-dark); }
+        #profile-form button[type="submit"] { background-color: var(--accent-purple); }
+        #profile-form button[type="submit"]:hover { background-color: var(--accent-purple-dark); }
+
+        /* Dynamic Pricing Display */
+        #pass-price-display {
+            text-align: center; font-size: 1.5rem; font-weight: 700; color: var(--primary-indigo); margin-top: 1rem;
+        }
+
+        /* View Passes Section */
+        #view-passes-section { max-width: 65rem; }
+        #passes-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        #passes-list .no-passes-message {
+            background-color: #f3f4f6; padding: 1.8rem; border-radius: 1rem;
+            box-shadow: 0 6px 12px -2px var(--shadow-medium); color: var(--text-medium); text-align: center;
+            font-weight: 500; border: 1px dashed var(--border-light);
+        }
+        #passes-list .pass-card {
+            background-color: var(--card-bg); padding: 2rem; border-radius: 1.2rem;
+            box-shadow: 0 12px 25px -5px var(--shadow-medium), 0 5px 10px -3px var(--shadow-light);
+            border: 1px solid var(--border-light); display: flex; flex-direction: column;
+            justify-content: space-between; align-items: flex-start; transition: all 0.3s ease-in-out;
+            position: relative; /* For the QR code placement */
+        }
+        #passes-list .pass-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px -6px var(--shadow-medium); }
+        @media (min-width: 640px) {
+            #passes-list .pass-card { flex-direction: row; align-items: center; }
+            #passes-list .pass-card > div:first-child { margin-bottom: 0; flex-grow: 1; }
+            #passes-list .pass-card > div:last-child { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.8rem; }
+        }
+        #passes-list .pass-card h3 {
+            font-size: 1.5rem; font-weight: 700; color: var(--text-dark); text-transform: capitalize; margin-bottom: 0.6rem;
+        }
+        #passes-list .pass-card h3 span { font-size: 0.95rem; font-weight: 400; color: #6b7280; }
+        #passes-list .pass-card p { color: var(--text-medium); margin-bottom: 0.3rem; font-size: 1rem; }
+        #passes-list .pass-card p strong { font-weight: 600; }
+        #passes-list .pass-card p span { font-weight: 600; }
+        #passes-list .pass-card p .text-indigo-600 { color: var(--primary-indigo); }
+        #passes-list .pass-card p .text-red-500 { color: var(--danger-red); }
+        #passes-list .pass-card .status-badge {
+            display: inline-block; padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.9rem;
+            font-weight: 700; margin-top: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #passes-list .pass-card .status-badge.active { background-color: #d1fae5; color: #065f46; border: 1px solid #10b981;}
+        #passes-list .pass-card .status-badge.inactive { background-color: #fef9c3; color: #a16207; border: 1px solid #eab308;}
+        #passes-list .pass-card .status-badge.expired { background-color: #fee2e2; color: #b91c1c; border: 1px solid #ef4444;}
+        #passes-list .pass-card .status-badge.pending { background-color: #e0f7fa; color: #00838f; border: 1px solid #00acc1;}
+
+        /* QR Code Placeholder */
+        .qr-code-placeholder {
+            width: 90px; height: 90px; background-color: #f3f4f6;
+            border: 2px dashed var(--border-light); display: flex; align-items: center;
+            justify-content: center; font-size: 0.7rem; color: var(--text-medium);
+            margin-top: 1rem; border-radius: 0.7rem; flex-shrink: 0;
+            position: absolute; right: 2rem; top: 2rem;
+        }
+        @media (max-width: 639px) { /* Adjust QR code position for small screens */
+            .qr-code-placeholder { position: static; margin: 1rem auto 0; }
+        }
+        .qr-code-placeholder.inactive { filter: grayscale(100%); opacity: 0.6; }
+        .qr-code-placeholder svg { width: 50px; height: 50px; color: #6b7280; }
+
+        /* Pass Actions (Toggle, Renew) */
+        .pass-actions { display: flex; gap: 0.7rem; margin-top: 0.8rem; flex-wrap: wrap; justify-content: flex-end;}
+        @media (max-width: 639px) {
+            .pass-actions { justify-content: center; }
+        }
+
+        .action-button {
+            background-color: var(--primary-indigo); color: #ffffff; border: none;
+            padding: 0.6rem 1.1rem; border-radius: 0.6rem; cursor: pointer;
+            transition: all 0.3s ease-in-out; font-size: 0.9rem; font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .action-button.deactivate { background-color: var(--danger-red); }
+        .action-button.renew { background-color: var(--info-orange); }
+
+        .action-button:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+
+        /* Admin Dashboard Section */
+        #admin-dashboard-section h2 { color: var(--info-orange); }
+        .admin-user-card {
+            background-color: #fffaf0; /* Lighter background for admin user cards */
+            padding: 1.5rem; border-radius: 1rem; border: 1px solid #fed7aa;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+        }
+        .admin-user-card h4 {
+            font-size: 1.25rem; font-weight: 700; color: var(--info-orange-dark); margin-bottom: 0.8rem;
+            border-bottom: 1px dashed #fed7aa; padding-bottom: 0.5rem;
+        }
+        .admin-user-card p { font-size: 0.95rem; color: var(--text-medium); margin-bottom: 0.4rem; }
+        .admin-user-card .admin-pass-list {
+            margin-top: 1rem; border-top: 1px dashed var(--border-light);
+            padding-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
+        }
+        .admin-pass-item {
+            font-size: 0.9rem; color: var(--text-dark); padding: 0.6rem 0.8rem;
+            background-color: #e0f2f7; border-radius: 0.5rem; border: 1px solid #b2ebf2;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .admin-pass-item .pass-id { font-weight: 700; color: var(--accent-blue-dark); }
+        .admin-pass-item .pass-status { font-weight: 600; text-transform: capitalize; }
+        .admin-pass-item .pass-status.active { color: #10b981; }
+        .admin-pass-item .pass-status.inactive { color: #f97316; }
+        .admin-pass-item .pass-status.expired { color: #ef4444; }
+        .admin-pass-item .pass-status.pending { color: #0ea5e9; }
+
+
+        /* Route Information Section */
+        #routes-section h2 { color: #DAA520; } /* Goldenrod for routes */
+        #routes-table-container {
+            overflow-x: auto; /* Allow horizontal scrolling on small screens */
+        }
+        #routes-table {
+            width: 100%; border-collapse: collapse; min-width: 600px; /* Ensure table doesn't get too small */
+        }
+        #routes-table th, #routes-table td {
+            padding: 1rem 1.2rem; border: 1px solid var(--border-light); text-align: left;
+        }
+        #routes-table th {
+            background-color: #FFFACD; /* Lemon chiffon */
+            color: var(--text-dark); font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        #routes-table tr:nth-child(even) { background-color: #fefefe; }
+        #routes-table tr:hover { background-color: #f0f7ff; } /* Light blue on hover */
+        #routes-table td strong { color: var(--primary-indigo); }
+
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 10000; opacity: 0; visibility: hidden;
+            transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+            backdrop-filter: blur(8px); /* Stronger blur */
+        }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background-color: var(--card-bg); padding: 3rem; border-radius: 1.2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); max-width: 450px; width: 90%;
+            text-align: center; transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid rgba(255, 255, 255, 0.8); /* White border for modal */
+        }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h3 {
+            font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 700;
+            color: var(--text-dark); margin-bottom: 1.2rem;
+        }
+        .modal-content p { font-size: 1.1rem; color: var(--text-medium); margin-bottom: 1.8rem; line-height: 1.5; }
+        .modal-buttons { display: flex; justify-content: center; gap: 1rem; }
+        .modal-buttons button {
+            padding: 0.9rem 1.8rem; border-radius: 0.7rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease-in-out; border: none; color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .modal-buttons button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        .modal-buttons .confirm-btn { background-color: var(--secondary-green); }
+        .modal-buttons .confirm-btn:hover { background-color: var(--secondary-green-dark); }
+        .modal-buttons .cancel-btn { background-color: var(--danger-red); }
+        .modal-buttons .cancel-btn:hover { background-color: var(--danger-red-dark); }
+        .modal-buttons .ok-btn { background-color: var(--primary-indigo); }
+        .modal-buttons .ok-btn:hover { background-color: var(--primary-indigo-dark); }
+
+        /* Contact Support Button */
+        .contact-support-btn {
+            background-color: var(--accent-purple); color: white; border: none;
+            padding: 0.9rem 1.8rem; border-radius: 0.8rem; font-weight: 700;
+            cursor: pointer; transition: all 0.3s ease-in-out;
+            box-shadow: 0 6px 12px -2px var(--shadow-medium); margin-top: 2.5rem;
+        }
+        .contact-support-btn:hover { background-color: var(--accent-purple-dark); transform: translateY(-3px); box-shadow: 0 10px 20px -4px var(--shadow-medium); }
+
+        /* Progress indicator for payment */
+        .processing-payment { opacity: 0.7; cursor: wait; }
+        .processing-payment::after {
+            content: ''; display: inline-block; width: 18px; height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.7); border-top-color: transparent;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-left: 12px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Main Container -->
+    <div id="app-container">
+
+        <!-- Header/Navigation -->
+        <header>
+            <h1>Bus Pass System</h1>
+            <nav id="main-nav">
+                <button id="dashboard-btn" class="nav-button">Dashboard</button>
+                <button id="apply-pass-nav-btn" class="nav-button">Apply for Pass</button>
+                <button id="view-passes-nav-btn" class="nav-button">View Passes</button>
+                <button id="routes-nav-btn" class="nav-button">Routes</button>
+                <button id="admin-btn" class="nav-button" style="display: none;">Admin Dashboard</button>
+                <button id="logout-btn" class="nav-button">Logout</button>
+            </nav>
+        </header>
+
+        <!-- Toast Container -->
+        <div id="toast-container"></div>
+
+        <!-- Login/Signup Section -->
+        <section id="auth-section" class="fade-in">
+            <h2 id="auth-title">Login</h2>
+            <form id="auth-form">
+                <div>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" id="auth-submit-btn">Login</button>
+            </form>
+            <p>
+                Don't have an account?
+                <button id="toggle-auth-mode">Sign up</button>
+            </p>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard-section">
+            <h2>Welcome, <span id="dashboard-username"></span>!</h2>
+            <div class="grid-container">
+                <!-- Card: Apply for New Pass -->
+                <div class="card" id="card-apply-pass">
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+                        <path d="M14 2v6h6M12 17h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zM16 17h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zM8 17h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"></path>
+                    </svg>
+                    <h3>Apply for New Pass</h3>
+                    <p>Start your journey with a new bus pass.</p>
+                </div>
+
+                <!-- Card: View My Passes -->
+                <div class="card" id="card-view-passes">
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 4H3a2 2 0 00-2 2v13a2 2 0 002 2h18a2 2 0 002-2V6a2 2 0 00-2-2zm-1 14H4V6h16z"></path>
+                        <path d="M12 10a2 2 0 100-4 2 2 0 000 4zm-4 4a4 4 0 108 0 4 4 0 00-8 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h3>View My Passes</h3>
+                    <p>See details of your active and expired passes.</p>
+                </div>
+
+                <!-- Card: Profile Settings -->
+                <div class="card" id="card-profile-settings">
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
+                    </svg>
+                    <h3>Profile Settings</h3>
+                    <p>Manage your personal information and preferences.</p>
+                </div>
+
+                <!-- Card: Routes -->
+                <div class="card" id="card-routes">
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9v-4H7V7h4v4h2V7h2v4h2v6h-2v-4h-2v4h-2v-4h-2v4z"></path>
+                    </svg>
+                    <h3>Bus Routes</h3>
+                    <p>Find bus routes, schedules, and stops.</p>
+                </div>
+
+                <!-- Card: Admin Dashboard (visible only to admin) -->
+                <div class="card" id="card-admin-dashboard" style="display: none;">
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.79z"></path>
+                    </svg>
+                    <h3>Admin Dashboard</h3>
+                    <p>Manage users and their passes (Admin Only).</p>
+                </div>
+            </div>
+            <button id="contact-support-btn" class="contact-support-btn">Contact Support</button>
+        </section>
+
+        <!-- Apply for Pass Section -->
+        <section id="apply-pass-section">
+            <h2>Apply for New Bus Pass</h2>
+            <form id="pass-application-form">
+                <div>
+                    <label for="pass-type">Pass Type</label>
+                    <select id="pass-type" name="passType" required>
+                        <option value="">Select Pass Type</option>
+                        <option value="daily">Daily Pass</option>
+                        <option value="weekly">Weekly Pass</option>
+                        <option value="monthly">Monthly Pass</option>
+                        <option value="annual">Annual Pass</option>
+                        <option value="student">Student Pass</option>
+                        <option value="senior">Senior Citizen Pass</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="duration">Duration (in months, if applicable)</label>
+                    <input type="number" id="duration" name="duration" min="1" max="12" placeholder="e.g., 1, 3, 6, 12">
+                </div>
+                 <div id="pass-price-display">Estimated Price: $0.00</div>
+                <div>
+                    <label for="start-date">Start Date</label>
+                    <input type="date" id="start-date" name="startDate" required>
+                </div>
+                <div>
+                    <label for="full-name">Full Name</label>
+                    <input type="text" id="full-name" name="fullName" required>
+                </div>
+                <div>
+                    <label for="email-address">Email Address</label>
+                    <input type="email" id="email-address" name="emailAddress" required>
+                </div>
+                <button type="button" id="process-payment-btn" class="form-submit-btn">Process Payment</button>
+                <button type="submit" style="display: none;" id="submit-pass-btn" class="form-submit-btn">Submit Application</button>
+            </form>
+        </section>
+
+        <!-- View Passes Section -->
+        <section id="view-passes-section">
+            <h2>My Bus Passes</h2>
+            <div id="passes-list">
+                <div class="no-passes-message">
+                    No passes found. Apply for one to see it here!
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Settings Section -->
+        <section id="profile-settings-section">
+            <h2>Profile Settings</h2>
+            <form id="profile-form">
+                <div>
+                    <label for="profile-username">Username</label>
+                    <input type="text" id="profile-username" name="username" readonly>
+                </div>
+                <div>
+                    <label for="profile-full-name">Full Name</label>
+                    <input type="text" id="profile-full-name" name="fullName" required>
+                </div>
+                <div>
+                    <label for="profile-email">Email Address</label>
+                    <input type="email" id="profile-email" name="email" required>
+                </div>
+                <button type="submit" class="form-submit-btn">Save Profile</button>
+            </form>
+        </section>
+
+        <!-- Routes Section -->
+        <section id="routes-section">
+            <h2>Bus Routes & Schedules</h2>
+            <div id="routes-table-container">
+                <table id="routes-table">
+                    <thead>
+                        <tr>
+                            <th>Route No.</th>
+                            <th>Origin</th>
+                            <th>Destination</th>
+                            <th>Frequency</th>
+                            <th>First Bus</th>
+                            <th>Last Bus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Routes will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard Section -->
+        <section id="admin-dashboard-section">
+            <h2>Admin Dashboard</h2>
+            <div id="admin-data-display">
+                <div class="no-passes-message">No user data available for admin view.</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal Markup -->
+    <div id="confirmation-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message">Are you sure you want to proceed?</p>
+            <div class="modal-buttons">
+                <button class="cancel-btn" id="modal-cancel">Cancel</button>
+                <button class="confirm-btn" id="modal-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alert-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="alert-modal-title">Notification</h3>
+            <p id="alert-modal-message">This is an alert message.</p>
+            <div class="modal-buttons">
+                <button class="ok-btn" id="alert-modal-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Global Data (In-memory for this demo) ---
+        let currentUser = null;
+        let users = {
+            'user1': { password: 'password123', passes: [], fullName: 'John Doe', email: 'john.doe@example.com' },
+            'admin': { password: 'admin', passes: [], fullName: 'Admin User', email: 'admin@example.com' }
+        };
+
+        const busRoutes = [
+            { routeNo: '101', origin: 'City Center', destination: 'Airport Terminal', frequency: '15 mins', firstBus: '05:00 AM', lastBus: '11:30 PM' },
+            { routeNo: '205', origin: 'Downtown Plaza', destination: 'University Campus', frequency: '10 mins', firstBus: '06:00 AM', lastBus: '10:00 PM' },
+            { routeNo: '310A', origin: 'Suburbia West', destination: 'Industrial Zone', frequency: '30 mins', firstBus: '06:30 AM', lastBus: '09:00 PM' },
+            { routeNo: '400', origin: 'Old Town', destination: 'New Developmnt', frequency: '20 mins', firstBus: '05:45 AM', lastBus: '11:00 PM' },
+            { routeNo: '55B', origin: 'Riverside Park', destination: 'Central Station', frequency: '25 mins', firstBus: '07:00 AM', lastBus: '09:30 PM' }
+        ];
+
+        const passPrices = {
+            daily: 5.00,
+            weekly: 20.00,
+            monthly: 60.00,
+            annual: 600.00,
+            student: 45.00, // Per month
+            senior: 30.00   // Per month
+        };
+
+        // --- DOM Element References ---
+        const authSection = document.getElementById('auth-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const applyPassSection = document.getElementById('apply-pass-section');
+        const viewPassesSection = document.getElementById('view-passes-section');
+        const profileSettingsSection = document.getElementById('profile-settings-section');
+        const adminDashboardSection = document.getElementById('admin-dashboard-section');
+        const routesSection = document.getElementById('routes-section');
+
+        const authForm = document.getElementById('auth-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const authTitle = document.getElementById('auth-title');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
+
+        const mainNav = document.getElementById('main-nav');
+        const dashboardBtn = document.getElementById('dashboard-btn');
+        const applyPassNavBtn = document.getElementById('apply-pass-nav-btn');
+        const viewPassesNavBtn = document.getElementById('view-passes-nav-btn');
+        const routesNavBtn = document.getElementById('routes-nav-btn'); // New
+        const adminBtn = document.getElementById('admin-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const dashboardUsernameSpan = document.getElementById('dashboard-username');
+        const cardApplyPass = document.getElementById('card-apply-pass');
+        const cardViewPasses = document.getElementById('card-view-passes');
+        const cardProfileSettings = document.getElementById('card-profile-settings');
+        const cardRoutes = document.getElementById('card-routes'); // New
+        const cardAdminDashboard = document.getElementById('card-admin-dashboard');
+        const contactSupportBtn = document.getElementById('contact-support-btn');
+
+        const passApplicationForm = document.getElementById('pass-application-form');
+        const passTypeSelect = document.getElementById('pass-type'); // For dynamic pricing
+        const durationInput = document.getElementById('duration'); // For dynamic pricing
+        const passPriceDisplay = document.getElementById('pass-price-display'); // New
+        const processPaymentBtn = document.getElementById('process-payment-btn');
+        const submitPassBtn = document.getElementById('submit-pass-btn');
+        const passesListDiv = document.getElementById('passes-list');
+
+        const profileForm = document.getElementById('profile-form');
+        const profileUsernameInput = document.getElementById('profile-username');
+        const profileFullNameInput = document.getElementById('profile-full-name');
+        const profileEmailInput = document.getElementById('profile-email');
+
+        const routesTableBody = document.querySelector('#routes-table tbody'); // New
+        const adminDataDisplay = document.getElementById('admin-data-display');
+
+        // Modal Elements
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalConfirmBtn = document.getElementById('modal-confirm');
+        const modalCancelBtn = document.getElementById('modal-cancel');
+
+        const alertModal = document.getElementById('alert-modal');
+        const alertModalTitle = document.getElementById('alert-modal-title');
+        const alertModalMessage = document.getElementById('alert-modal-message');
+        const alertModalOkBtn = document.getElementById('alert-modal-ok');
+
+        const toastContainer = document.getElementById('toast-container'); // New for toast notifications
+
+        // State for authentication mode (login or signup)
+        let isLoginMode = true;
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a temporary toast message to the user.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', or 'info' to style the toast.
+         * @param {string} iconClass - Class for the icon (e.g., '✔️', '❌', 'ℹ️').
+         */
+        function showToast(message, type, iconContent) {
+            const toast = document.createElement('div');
+            toast.classList.add('toast', type);
+            toast.innerHTML = `
+                <span class="toast-icon">${iconContent}</span>
+                <span>${message}</span>
+                <button class="toast-close-btn">&times;</button>
+            `;
+            toastContainer.appendChild(toast);
+
+            // Trigger reflow to ensure animation starts correctly
+            void toast.offsetWidth;
+
+            toast.style.opacity = 1;
+            toast.style.transform = 'translateX(0)';
+
+            const closeButton = toast.querySelector('.toast-close-btn');
+            closeButton.addEventListener('click', () => {
+                toast.style.opacity = 0;
+                toast.style.transform = 'translateX(100%)';
+                toast.addEventListener('transitionend', () => toast.remove());
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = 0;
+                toast.style.transform = 'translateX(100%)';
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000); // Auto-hide after 3 seconds
+        }
+
+        /**
+         * Shows a custom confirmation modal.
+         * @param {string} title - Title of the modal.
+         * @param {string} message - Message to display.
+         * @returns {Promise<boolean>} - Resolves true if confirmed, false if canceled.
+         */
+        function showConfirmationModal(title, message) {
+            return new Promise((resolve) => {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                confirmationModal.classList.add('visible');
+
+                const confirmHandler = () => {
+                    confirmationModal.classList.remove('visible');
+                    modalConfirmBtn.removeEventListener('click', confirmHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(true);
+                };
+
+                const cancelHandler = () => {
+                    confirmationModal.classList.remove('visible');
+                    modalConfirmBtn.removeEventListener('click', confirmHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(false);
+                };
+
+                modalConfirmBtn.addEventListener('click', confirmHandler);
+                modalCancelBtn.addEventListener('click', cancelHandler);
+            });
+        }
+
+        /**
+         * Shows a custom alert modal.
+         * @param {string} title - Title of the modal.
+         * @param {string} message - Message to display.
+         * @returns {Promise<void>} - Resolves when OK is clicked.
+         */
+        function showAlertModal(title, message) {
+            return new Promise((resolve) => {
+                alertModalTitle.textContent = title;
+                alertModalMessage.textContent = message;
+                alertModal.classList.add('visible');
+
+                const okHandler = () => {
+                    alertModal.classList.remove('visible');
+                    alertModalOkBtn.removeEventListener('click', okHandler);
+                    resolve();
+                };
+                alertModalOkBtn.addEventListener('click', okHandler);
+            });
+        }
+
+        /**
+         * Hides all content sections and shows the specified section.
+         * Applies fade-out to current section and fade-in to new section.
+         * @param {HTMLElement} sectionToShow - The section DOM element to display.
+         */
+        function showSection(sectionToShow) {
+            const sections = [authSection, dashboardSection, applyPassSection, viewPassesSection, profileSettingsSection, adminDashboardSection, routesSection];
+            sections.forEach(section => {
+                if (section.classList.contains('fade-in')) {
+                    section.classList.remove('fade-in');
+                    section.classList.add('fade-out');
+                    setTimeout(() => {
+                        section.classList.add('hidden');
+                        section.classList.remove('fade-out');
+                    }, 600); // Match animation duration
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+
+            setTimeout(() => {
+                sectionToShow.classList.remove('hidden');
+                sectionToShow.classList.add('fade-in');
+            }, 400); // A small delay to allow previous section to start fading out
+        }
+
+        // --- Authentication Logic ---
+
+        /**
+         * Handles user login or signup.
+         * @param {Event} event - The form submission event.
+         */
+        authForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                showToast('Please enter both username and password.', 'error', '❌');
+                return;
+            }
+
+            if (isLoginMode) {
+                // Login logic
+                if (users[username] && users[username].password === password) {
+                    currentUser = username;
+                    showToast('Login successful!', 'success', '✔️');
+                    mainNav.style.display = 'flex';
+                    // Show admin button if current user is admin
+                    if (currentUser === 'admin') {
+                        adminBtn.style.display = 'block';
+                        cardAdminDashboard.style.display = 'flex';
+                    } else {
+                        adminBtn.style.display = 'none';
+                        cardAdminDashboard.style.display = 'none';
+                    }
+                    renderDashboard();
+                    showSection(dashboardSection);
+                } else {
+                    showToast('Invalid username or password.', 'error', '❌');
+                }
+            } else {
+                // Signup logic
+                if (users[username]) {
+                    showToast('Username already taken. Please choose another.', 'error', '❌');
+                } else {
+                    users[username] = { password: password, passes: [], fullName: '', email: '' };
+                    currentUser = username;
+                    showToast('Signup successful! Welcome to the system.', 'success', '✔️');
+                    mainNav.style.display = 'flex';
+                    adminBtn.style.display = 'none'; // New users are not admins
+                    cardAdminDashboard.style.display = 'none';
+                    renderDashboard();
+                    showSection(dashboardSection);
+                }
+            }
+            usernameInput.value = '';
+            passwordInput.value = '';
+        });
+
+        /**
+         * Toggles between login and signup modes for the authentication form.
+         */
+        toggleAuthModeBtn.addEventListener('click', function() {
+            isLoginMode = !isLoginMode;
+            authTitle.textContent = isLoginMode ? 'Login' : 'Sign Up';
+            authSubmitBtn.textContent = isLoginMode ? 'Login' : 'Sign Up';
+            toggleAuthModeBtn.textContent = isLoginMode ? 'Sign up' : 'Login';
+        });
+
+        // --- Dashboard & Navigation Logic ---
+
+        /**
+         * Renders the dashboard with the current user's name.
+         */
+        function renderDashboard() {
+            if (currentUser) {
+                dashboardUsernameSpan.textContent = users[currentUser].fullName || currentUser;
+            }
+        }
+
+        // Navigation Button Event Listeners
+        dashboardBtn.addEventListener('click', () => {
+            if (currentUser) {
+                renderDashboard();
+                showSection(dashboardSection);
+            } else {
+                showToast('Please login to view dashboard.', 'info', 'ℹ️');
+                showSection(authSection);
+            }
+        });
+
+        applyPassNavBtn.addEventListener('click', () => {
+            if (currentUser) {
+                passApplicationForm.reset();
+                processPaymentBtn.style.display = 'block';
+                submitPassBtn.style.display = 'none';
+                durationInput.value = ''; // Clear duration
+                passTypeSelect.dispatchEvent(new Event('change')); // Recalculate price for empty form
+                showSection(applyPassSection);
+            } else {
+                showToast('Please login to apply for a pass.', 'info', 'ℹ️');
+                showSection(authSection);
+            }
+        });
+
+        viewPassesNavBtn.addEventListener('click', () => {
+            if (currentUser) {
+                renderPasses();
+                showSection(viewPassesSection);
+            } else {
+                showToast('Please login to view your passes.', 'info', 'ℹ️');
+                showSection(authSection);
+            }
+        });
+
+        routesNavBtn.addEventListener('click', () => {
+             if (currentUser) {
+                renderRoutes();
+                showSection(routesSection);
+            } else {
+                showToast('Please login to view bus routes.', 'info', 'ℹ️');
+                showSection(authSection);
+            }
+        });
+
+        adminBtn.addEventListener('click', () => {
+            if (currentUser === 'admin') {
+                renderAdminDashboard();
+                showSection(adminDashboardSection);
+            } else {
+                showToast('Access Denied. Only administrators can view this page.', 'error', '❌');
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            const confirmed = await showConfirmationModal('Logout', 'Are you sure you want to log out?');
+            if (confirmed) {
+                currentUser = null;
+                showToast('You have been logged out.', 'info', '👋');
+                mainNav.style.display = 'none';
+                adminBtn.style.display = 'none';
+                cardAdminDashboard.style.display = 'none';
+                showSection(authSection);
+            }
+        });
+
+        // Dashboard Card Event Listeners
+        cardApplyPass.addEventListener('click', () => applyPassNavBtn.click());
+        cardViewPasses.addEventListener('click', () => viewPassesNavBtn.click());
+        cardProfileSettings.addEventListener('click', () => {
+            if (currentUser) {
+                profileUsernameInput.value = currentUser;
+                profileFullNameInput.value = users[currentUser].fullName;
+                profileEmailInput.value = users[currentUser].email;
+                showSection(profileSettingsSection);
+            } else {
+                showToast('Please login to manage your profile.', 'info', 'ℹ️');
+                showSection(authSection);
+            }
+        });
+        cardRoutes.addEventListener('click', () => routesNavBtn.click());
+        cardAdminDashboard.addEventListener('click', () => adminBtn.click());
+        contactSupportBtn.addEventListener('click', async () => {
+            await showAlertModal('Contact Support', 'For support, please email us at support@buspass.com. We will get back to you within 24 hours.');
+        });
+
+        // --- Apply for Pass Logic ---
+
+        /**
+         * Calculates and displays the estimated pass price.
+         */
+        function updatePassPrice() {
+            const passType = passTypeSelect.value;
+            const duration = parseInt(durationInput.value) || 1; // Default to 1 if no duration
+            let price = 0;
+
+            if (passType && passPrices[passType]) {
+                if (passType === 'daily' || passType === 'weekly' || passType === 'annual') {
+                    price = passPrices[passType];
+                } else if (passType === 'monthly' || passType === 'student' || passType === 'senior') {
+                    price = passPrices[passType] * duration;
+                }
+            }
+            passPriceDisplay.textContent = `Estimated Price: $${price.toFixed(2)}`;
+        }
+
+        passTypeSelect.addEventListener('change', updatePassPrice);
+        durationInput.addEventListener('input', updatePassPrice);
+
+
+        /**
+         * Handles payment processing simulation.
+         */
+        processPaymentBtn.addEventListener('click', async () => {
+            // Basic form validation before payment simulation
+            const passType = passTypeSelect.value;
+            const duration = durationInput.value;
+            const startDate = document.getElementById('start-date').value;
+            const fullName = document.getElementById('full-name').value;
+            const emailAddress = document.getElementById('email-address').value;
+
+            if (!passType || !startDate || !fullName || !emailAddress) {
+                showToast('Please fill in all required fields before processing payment.', 'error', '❌');
+                return;
+            }
+            if ((passType === 'monthly' || passType === 'annual' || passType === 'student' || passType === 'senior') && (!duration || duration < 1)) {
+                showToast('Please specify a valid duration for this pass type.', 'error', '❌');
+                return;
+            }
+
+            processPaymentBtn.disabled = true;
+            processPaymentBtn.textContent = 'Processing...';
+            processPaymentBtn.classList.add('processing-payment');
+
+            // Simulate payment processing time
+            setTimeout(async () => {
+                const confirmed = await showConfirmationModal('Payment Confirmation', `${passPriceDisplay.textContent}. Confirm purchase?`);
+                if (confirmed) {
+                    showToast('Payment successful! You can now submit your application.', 'success', '✔️');
+                    processPaymentBtn.style.display = 'none';
+                    submitPassBtn.style.display = 'block';
+                } else {
+                    showToast('Payment cancelled.', 'info', 'ℹ️');
+                    processPaymentBtn.style.display = 'block';
+                    submitPassBtn.style.display = 'none';
+                }
+                processPaymentBtn.disabled = false;
+                processPaymentBtn.textContent = 'Process Payment';
+                processPaymentBtn.classList.remove('processing-payment');
+            }, 2000); // Simulate 2 second payment gateway call for more realism
+        });
+
+        /**
+         * Handles the submission of the bus pass application form.
+         * @param {Event} event - The form submission event.
+         */
+        passApplicationForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (!currentUser) {
+                showToast('You must be logged in to apply for a pass.', 'error', '❌');
+                showSection(authSection);
+                return;
+            }
+
+            // Ensure payment was processed
+            if (submitPassBtn.style.display === 'none') {
+                showToast('Please process payment before submitting the application.', 'error', '❌');
+                return;
+            }
+
+            const passType = passTypeSelect.value;
+            const duration = durationInput.value;
+            const startDate = document.getElementById('start-date').value;
+            const fullName = document.getElementById('full-name').value;
+            const emailAddress = document.getElementById('email-address').value;
+
+            // Generate a unique pass ID
+            const passId = 'BP' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+            const applicationDate = new Date().toLocaleDateString('en-GB');
+
+            // Calculate expiry date
+            let expiryDate = 'N/A';
+            const start = new Date(startDate);
+            if (passType === 'daily') {
+                start.setDate(start.getDate() + 1);
+                expiryDate = start.toLocaleDateString('en-GB');
+            } else if (passType === 'weekly') {
+                start.setDate(start.getDate() + 7);
+                expiryDate = start.toLocaleDateString('en-GB');
+            } else if (passType === 'monthly' || passType === 'student' || passType === 'senior') {
+                start.setMonth(start.getMonth() + parseInt(duration));
+                expiryDate = start.toLocaleDateString('en-GB');
+            } else if (passType === 'annual') {
+                start.setFullYear(start.getFullYear() + parseInt(duration || 1)); // Default to 1 year
+                expiryDate = start.toLocaleDateString('en-GB');
+            }
+
+            const newPass = {
+                id: passId,
+                type: passType,
+                duration: duration,
+                startDate: startDate,
+                expiryDate: expiryDate,
+                applicantName: fullName,
+                applicantEmail: emailAddress,
+                applicationDate: applicationDate,
+                status: 'pending'
+            };
+
+            users[currentUser].passes.push(newPass);
+            showToast('Bus pass application submitted successfully! Pending activation.', 'success', '🚀');
+            passApplicationForm.reset();
+            processPaymentBtn.style.display = 'block';
+            submitPassBtn.style.display = 'none';
+            updatePassPrice(); // Reset price display
+            renderPasses();
+            showSection(viewPassesSection);
+        });
+
+        // --- View Passes Logic ---
+
+        /**
+         * Renders the list of bus passes for the current user.
+         */
+        function renderPasses() {
+            if (!currentUser || !users[currentUser].passes) {
+                passesListDiv.innerHTML = `<div class="no-passes-message">
+                                            Please login to view your passes.
+                                          </div>`;
+                return;
+            }
+
+            const userPasses = users[currentUser].passes;
+            if (userPasses.length === 0) {
+                passesListDiv.innerHTML = `<div class="no-passes-message">
+                                            No passes found. Apply for one to see it here!
+                                          </div>`;
+                return;
+            }
+
+            passesListDiv.innerHTML = userPasses.map((pass, index) => {
+                const isPassActive = pass.status === 'active';
+                const buttonText = isPassActive ? 'Deactivate Pass' : 'Activate Pass';
+                const buttonClass = isPassActive ? 'deactivate' : '';
+                const qrCodeStatusClass = isPassActive ? '' : 'inactive';
+                const currentStatusClass = pass.status;
+
+                // Check if pass is expired based on current date
+                const today = new Date();
+                const expiry = new Date(pass.expiryDate);
+                if (pass.expiryDate !== 'N/A' && expiry < today && pass.status !== 'expired') {
+                    pass.status = 'expired'; // Update status if expired
+                }
+
+                return `
+                <div class="pass-card">
+                    <div>
+                        <h3>${pass.type} Pass <span class="pass-id-span">(${pass.id})</span></h3>
+                        <p><strong>Name:</strong> ${pass.applicantName}</p>
+                        <p><strong>Email:</strong> ${pass.applicantEmail}</p>
+                        <p><strong>Applied On:</strong> ${pass.applicationDate}</p>
+                    </div>
+                    <div>
+                        <p>Valid From: <span class="text-indigo-600">${pass.startDate}</span></p>
+                        <p>Expires On: <span class="text-red-500">${pass.expiryDate}</span></p>
+                        <span class="status-badge ${currentStatusClass}">
+                            ${pass.status}
+                        </span>
+                        <div class="pass-actions">
+                            ${pass.status !== 'expired' ? `<button class="action-button toggle-status-btn ${buttonClass}" data-index="${index}">${buttonText}</button>` : ''}
+                            ${pass.status !== 'expired' ? `<button class="action-button renew-pass-btn renew" data-index="${index}">Renew Pass</button>` : ''}
+                        </div>
+                    </div>
+                    <div class="qr-code-placeholder ${qrCodeStatusClass}" title="QR Code for ${pass.type} Pass">
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 3h8V3H3zm10 0h8V3h-8zm-10 10h8V13H3zm10 0h8V13h-8zM7 7h2v2H7zm10 0h2v2h-2zM7 17h2v2H7zm10 0h2v2h-2zM3 13V3h10v10H3zM13 13V3h8v10h-8zM3 21v-8h10v8H3zM13 21v-8h8v8h-8z"></path>
+                        </svg>
+                    </div>
+                </div>
+            `;
+            }).join('');
+
+            // Add event listeners for toggle and renew buttons
+            document.querySelectorAll('.toggle-status-btn').forEach(button => {
+                button.addEventListener('click', async (event) => {
+                    const index = event.target.dataset.index;
+                    const pass = users[currentUser].passes[index];
+                    let newStatus;
+                    let confirmationMessage;
+
+                    if (pass.status === 'active') {
+                        newStatus = 'inactive';
+                        confirmationMessage = `Are you sure you want to deactivate your ${pass.type} Pass (${pass.id})?`;
+                    } else {
+                        newStatus = 'active';
+                        confirmationMessage = `Are you sure you want to activate your ${pass.type} Pass (${pass.id})?`;
+                    }
+
+                    const confirmed = await showConfirmationModal('Confirm Pass Status Change', confirmationMessage);
+                    if (confirmed) {
+                        pass.status = newStatus;
+                        showToast(`Pass ${pass.id} status updated to ${newStatus}.`, 'success', '🔄');
+                        renderPasses(); // Re-render to reflect changes
+                    } else {
+                        showToast('Status change cancelled.', 'info', 'ℹ️');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.renew-pass-btn').forEach(button => {
+                button.addEventListener('click', async (event) => {
+                    const index = event.target.dataset.index;
+                    const pass = users[currentUser].passes[index];
+
+                    const confirmed = await showConfirmationModal('Renew Pass', `Are you sure you want to renew your ${pass.type} Pass (${pass.id})? This will extend its expiry date by its original duration.`);
+                    if (confirmed) {
+                        const currentExpiryDate = new Date(pass.expiryDate);
+                        let newExpiryDate = new Date(currentExpiryDate);
+
+                        if (pass.type === 'daily') {
+                            newExpiryDate.setDate(newExpiryDate.getDate() + 1);
+                        } else if (pass.type === 'weekly') {
+                            newExpiryDate.setDate(newExpiryDate.getDate() + 7);
+                        } else if (pass.type === 'monthly' || pass.type === 'student' || pass.type === 'senior') {
+                            newExpiryDate.setMonth(newExpiryDate.getMonth() + parseInt(pass.duration));
+                        } else if (pass.type === 'annual') {
+                            newExpiryDate.setFullYear(newExpiryDate.getFullYear() + parseInt(pass.duration || 1));
+                        }
+
+                        pass.expiryDate = newExpiryDate.toLocaleDateString('en-GB');
+                        pass.status = 'active'; // Renewed passes are active
+                        showToast(`Pass ${pass.id} renewed successfully! New expiry: ${pass.expiryDate}`, 'success', '✨');
+                        renderPasses();
+                    } else {
+                        showToast('Pass renewal cancelled.', 'info', 'ℹ️');
+                    }
+                });
+            });
+        }
+
+        // --- Profile Settings Logic ---
+
+        /**
+         * Handles the submission of the profile settings form.
+         * @param {Event} event - The form submission event.
+         */
+        profileForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (!currentUser) {
+                showToast('You must be logged in to update your profile.', 'error', '❌');
+                showSection(authSection);
+                return;
+            }
+
+            const fullName = profileFullNameInput.value.trim();
+            const email = profileEmailInput.value.trim();
+
+            if (!fullName || !email) {
+                showToast('Full Name and Email are required.', 'error', '❌');
+                return;
+            }
+            if (!email.includes('@') || !email.includes('.')) {
+                showToast('Please enter a valid email address.', 'error', '❌');
+                return;
+            }
+
+            users[currentUser].fullName = fullName;
+            users[currentUser].email = email;
+
+            showToast('Profile updated successfully!', 'success', '💾');
+            renderDashboard(); // Update dashboard username in case full name changed
+            showSection(dashboardSection);
+        });
+
+        // --- Routes Logic ---
+        /**
+         * Renders the bus routes table.
+         */
+        function renderRoutes() {
+            if (!currentUser) {
+                routesTableBody.innerHTML = `<tr><td colspan="6" class="no-passes-message">Please login to view bus routes.</td></tr>`;
+                return;
+            }
+            let routesHtml = '';
+            busRoutes.forEach(route => {
+                routesHtml += `
+                    <tr>
+                        <td><strong>${route.routeNo}</strong></td>
+                        <td>${route.origin}</td>
+                        <td>${route.destination}</td>
+                        <td>${route.frequency}</td>
+                        <td>${route.firstBus}</td>
+                        <td>${route.lastBus}</td>
+                    </tr>
+                `;
+            });
+            routesTableBody.innerHTML = routesHtml;
+        }
+
+
+        // --- Admin Dashboard Logic ---
+
+        /**
+         * Renders the admin dashboard, showing all users and their passes.
+         */
+        function renderAdminDashboard() {
+            if (currentUser !== 'admin') {
+                showToast('Unauthorized access to admin dashboard.', 'error', '🚫');
+                showSection(dashboardSection);
+                return;
+            }
+
+            let adminHtml = '';
+            const userKeys = Object.keys(users);
+
+            if (userKeys.length === 1 && users.admin) { // Only admin user exists
+                 adminHtml = `<div class="no-passes-message">No user data available (excluding admin).</div>`;
+            } else {
+                userKeys.forEach(username => {
+                    const userData = users[username];
+                    if (username === 'admin') return;
+
+                    adminHtml += `
+                        <div class="admin-user-card">
+                            <h4>User: ${username} (${userData.fullName || 'N/A'})</h4>
+                            <p>Email: ${userData.email || 'N/A'}</p>
+                            <div class="admin-pass-list">
+                                <strong>Passes:</strong>
+                    `;
+                    if (userData.passes.length === 0) {
+                        adminHtml += `<p style="font-style: italic; color: var(--text-medium); margin-top: 0.5rem;">No passes for this user.</p>`;
+                    } else {
+                        userData.passes.forEach(pass => {
+                            adminHtml += `
+                                <div class="admin-pass-item">
+                                    <span>${pass.type} Pass: <span class="pass-id">${pass.id}</span></span>
+                                    <span class="pass-status ${pass.status}">${pass.status}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    adminHtml += `
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            adminDataDisplay.innerHTML = adminHtml;
+        }
+
+        // --- Initial Load ---
+        showSection(authSection);
+        updatePassPrice(); // Initialize pass price display on load
+    </script>
+</body>
+</html>
